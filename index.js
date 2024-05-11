@@ -16,7 +16,7 @@ app.use(express.json());
 const user = process.env.DB_USER;
 const pass = process.env.DB_PASS;
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${user}:${pass}@cluster0.kdwhpbt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -38,6 +38,21 @@ async function run() {
     app.get("/jobs", async (req, res) => {
       const cursor = await jobCollection.find().toArray();
       res.send(cursor);
+    });
+
+    app.get("/job/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await jobCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.get("/job", async (req, res) => {
+      const query = req.query.type;
+      const result = await jobCollection
+        .find({ job_category: query })
+        .toArray();
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
