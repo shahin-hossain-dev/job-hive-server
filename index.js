@@ -34,7 +34,9 @@ async function run() {
     await client.connect();
 
     const jobCollection = client.db("jobHiveDB").collection("jobs");
-    const appliedJobs = client.db("jobHiveDB").collection("appliedJobs");
+    const appliedJobsCollection = client
+      .db("jobHiveDB")
+      .collection("appliedJobs");
 
     app.get("/jobs", async (req, res) => {
       const cursor = await jobCollection.find().toArray();
@@ -56,10 +58,23 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/applied", (req, res) => {
+    app.post("/applied", async (req, res) => {
       const appliedJob = req.body;
-      console.log(appliedJob);
-      res.send(appliedJob);
+      const result = await appliedJobsCollection.insertOne(appliedJob);
+      res.send(result);
+    });
+
+    app.patch("/job/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateApplicants = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          job_applicants: updateApplicants.newCount,
+        },
+      };
+      const result = await jobCollection.updateOne(filter, updateDoc);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
