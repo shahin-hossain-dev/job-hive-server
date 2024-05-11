@@ -38,24 +38,35 @@ async function run() {
       .db("jobHiveDB")
       .collection("appliedJobs");
 
+    // get all jobs
+
     app.get("/jobs", async (req, res) => {
       const cursor = await jobCollection.find().toArray();
       res.send(cursor);
     });
-
+    // get job with specific id
     app.get("/job/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await jobCollection.findOne(query);
       res.send(result);
     });
-
+    // get jobs by job type query
     app.get("/job", async (req, res) => {
       const query = req.query.type;
       const result = await jobCollection
         .find({ job_category: query })
         .toArray();
       res.send(result);
+    });
+
+    // get all applied jobs
+
+    app.get("/applied-jobs", async (req, res) => {
+      const userEmail = req.query.email;
+      const query = { email: userEmail };
+      const cursor = await appliedJobsCollection.find(query).toArray();
+      res.send(cursor);
     });
 
     app.post("/applied", async (req, res) => {
