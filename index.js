@@ -34,6 +34,7 @@ async function run() {
     await client.connect();
 
     const jobCollection = client.db("jobHiveDB").collection("jobs");
+    const appliedJobs = client.db("jobHiveDB").collection("appliedJobs");
 
     app.get("/jobs", async (req, res) => {
       const cursor = await jobCollection.find().toArray();
@@ -53,6 +54,12 @@ async function run() {
         .find({ job_category: query })
         .toArray();
       res.send(result);
+    });
+
+    app.post("/applied", (req, res) => {
+      const appliedJob = req.body;
+      console.log(appliedJob);
+      res.send(appliedJob);
     });
 
     // Send a ping to confirm a successful connection
