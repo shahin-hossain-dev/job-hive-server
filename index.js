@@ -1,6 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
+
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -12,6 +15,23 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(cookieParser());
+
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+
+  if (!token) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+
+  jwt.verify(token, process.env.TOKEN_SECRET_KEY, (error, decoded) => {
+    if (error) {
+      return res.status(401).send({ message: "unauthorized access" });
+    }
+    req.user = decoded;
+    next();
+  });
+};
 
 const user = process.env.DB_USER;
 const pass = process.env.DB_PASS;
@@ -38,8 +58,22 @@ async function run() {
       .db("jobHiveDB")
       .collection("appliedJobs");
 
-    // get all jobs
+    // jwt token
+    app.post("/jwt", (req, res) => {
+      const email = req.body;
+      const token = jwt.sign(email, process.env.TOKEN_SECRET_KEY, {
+        expiresIn: "1h",
+      });
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        })
+        .send({ success: true });
+    });
 
+    // get all jobs
     app.get("/jobs", async (req, res) => {
       const cursor = await jobCollection.find().toArray();
       res.send(cursor);
@@ -62,9 +96,10 @@ async function run() {
 
     // get all applied jobs
 
-    app.get("/applied-jobs", async (req, res) => {
+    app.get("/applied-jobs", verifyToken, async (req, res) => {
       const userEmail = req.query.email;
       const query = { email: userEmail };
+
       const cursor = await appliedJobsCollection.find(query).toArray();
       res.send(cursor);
     });
