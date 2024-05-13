@@ -103,6 +103,25 @@ async function run() {
         .toArray();
       res.send(result);
     });
+    // post job
+    app.post("/jobs", async (req, res) => {
+      const newJob = req.body;
+      const jobDoc = {
+        job_banner_url: newJob.imageURL,
+        job_title: newJob.jobTitle,
+        user_name: newJob.userName,
+        user_email: newJob.userEmail,
+        job_category: newJob.jobCategory,
+        min_range: newJob.minRange,
+        max_range: newJob.maxRange,
+        job_description: newJob.jobDescription,
+        job_posting_date: newJob.jobPostingDate,
+        application_deadline: newJob.applicationDeadline,
+        job_applicants: newJob.jobApplicants,
+      };
+      const result = await jobCollection.insertOne(jobDoc);
+      res.send(result);
+    });
 
     // get all applied jobs
 
