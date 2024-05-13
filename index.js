@@ -105,9 +105,14 @@ async function run() {
     });
 
     // get my jobs by email query
-    app.get("/my-jobs", async (req, res) => {
+    app.get("/my-jobs", verifyToken, async (req, res) => {
       const queryEmail = req.query.email;
       const query = { user_email: queryEmail };
+      const verifyEmail = req.user.email;
+
+      if (queryEmail !== verifyEmail) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
       const result = await jobCollection.find(query).toArray();
       res.send(result);
     });
@@ -180,11 +185,11 @@ async function run() {
     //update applicants numbers
     app.patch("/job/:id", async (req, res) => {
       const id = req.params.id;
-      const updateApplicants = req.body;
+      // const updateApplicants = req.body;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
-        $set: {
-          job_applicants: updateApplicants.newCount,
+        $inc: {
+          job_applicants: 1,
         },
       };
       const result = await jobCollection.updateOne(filter, updateDoc);
