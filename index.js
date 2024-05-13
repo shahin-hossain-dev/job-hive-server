@@ -103,6 +103,15 @@ async function run() {
         .toArray();
       res.send(result);
     });
+
+    // get my jobs by email query
+    app.get("/my-jobs", async (req, res) => {
+      const queryEmail = req.query.email;
+      const query = { user_email: queryEmail };
+      const result = await jobCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // post job
     app.post("/jobs", async (req, res) => {
       const newJob = req.body;
@@ -143,6 +152,32 @@ async function run() {
       res.send(result);
     });
 
+    // update job
+
+    app.put("/job/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedJob = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const option = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          job_banner_url: updatedJob.imageURL,
+          job_title: updatedJob.jobTitle,
+          user_name: updatedJob.userName,
+          user_email: updatedJob.userEmail,
+          job_category: updatedJob.jobCategory,
+          min_range: updatedJob.minRange,
+          max_range: updatedJob.maxRange,
+          job_description: updatedJob.jobDescription,
+          application_deadline: updatedJob.applicationDeadline,
+        },
+      };
+      const result = await jobCollection.updateOne(filter, updatedDoc, option);
+
+      res.send(result);
+    });
+
+    //update applicants numbers
     app.patch("/job/:id", async (req, res) => {
       const id = req.params.id;
       const updateApplicants = req.body;
