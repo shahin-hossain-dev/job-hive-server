@@ -57,10 +57,12 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
+    // database collections
     const jobCollection = client.db("jobHiveDB").collection("jobs");
     const appliedJobsCollection = client
       .db("jobHiveDB")
       .collection("appliedJobs");
+    const blogsCollection = client.db("jobHiveDB").collection("blogs");
 
     // jwt token
     app.post("/jwt", (req, res) => {
@@ -114,6 +116,13 @@ async function run() {
         return res.status(403).send({ message: "forbidden access" });
       }
       const result = await jobCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // get all blogs
+
+    app.get("/blogs", async (req, res) => {
+      const result = await blogsCollection.find().toArray();
       res.send(result);
     });
 
