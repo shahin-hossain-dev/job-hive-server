@@ -90,6 +90,20 @@ async function run() {
       const cursor = await jobCollection.find().toArray();
       res.send(cursor);
     });
+    // get query jobs
+    app.get("/job-range", async (req, res) => {
+      const min = req.query.min;
+      const max = req.query.max;
+      const query = {
+        min_range: { $gte: parseInt(min) },
+        max_range: { $lte: parseInt(max) },
+      };
+      const result = await jobCollection.find(query).toArray();
+      res.send(result);
+
+      // console.log(result);
+    });
+
     // get job with specific id
     app.get("/job/:id", async (req, res) => {
       const id = req.params.id;
